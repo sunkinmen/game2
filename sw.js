@@ -1,5 +1,5 @@
 /* Service Worker — 離線快取（快取優先；背景更新）。改動檔案後請調高 CACHE 版本號。 */
-const CACHE = 'tfight-v1';
+const CACHE = 'tfight-v2';
 const FILES = [
   "./",
   "./index.html",
@@ -7,6 +7,10 @@ const FILES = [
   "./icon.svg",
   "./js/ai.js",
   "./js/brush.js",
+  "./js/sprites.js",
+  "./assets/long.png",
+  "./assets/long.json",
+  "./assets/long_portrait.jpg",
   "./js/combat.js",
   "./js/config.js",
   "./js/fight.js",

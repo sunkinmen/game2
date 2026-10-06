@@ -3,6 +3,7 @@
   'use strict';
   var W = CFG.W, H = CFG.H, FI = G.FightInput, R = G.Rig, UI = G.UI, FX = G.FxAudio, M = G.Moves;
   function bgStage(i) { return Stage.make(i); }
+  function pname(t, k) { var seq = ['idleA', 'idleB', 'jab0', 'jab1', 'jab0', 'idleA', 'kick0', 'kick1', 'kick0', 'idleB', 'hp0', 'hp1', 'hp0', 'idleA']; return seq[Math.floor((t * 2.2 + k) % seq.length)]; }
   function ppose(t, k) {                                          // 標題畫面的招式循環動畫
     var seq = ['idleA', 'idleB', 'jab0', 'jab1', 'jab0', 'idleA', 'kick0', 'kick1', 'kick0', 'idleB', 'hp0', 'hp1', 'hp0', 'idleA'], i = Math.floor((t * 2.2 + k) % seq.length), j = (i + 1) % seq.length, f = (t * 2.2 + k) % 1;
     return R.lerpPose(R.POSE[seq[i]], R.POSE[seq[j]], f);
@@ -30,7 +31,7 @@
   T.draw = function (c) {
     var t = this.t / 60, pen = new CanvasPen(c);
     this.stage.draw(c, 300 + Math.sin(t * .25) * 260, t); c.fillStyle = 'rgba(8,4,24,.45)'; c.fillRect(0, 0, W, H);
-    [[this.a, 250, 1, 0], [this.b, 710, -1, 5]].forEach(function (p) { var J = R.solve(p[0].look, ppose(t, p[3]), p[1], 480, p[2], 1.35 * (p[0].scale || 1)); c.fillStyle = 'rgba(0,0,0,.3)'; c.beginPath(); c.ellipse(p[1], 484, 80, 12, 0, 0, 6.3); c.fill(); R.draw(pen, J, p[0].look, 'atk'); });
+    [[this.a, 250, 1, 0], [this.b, 710, -1, 5]].forEach(function (p) { c.fillStyle = 'rgba(0,0,0,.3)'; c.beginPath(); c.ellipse(p[1], 484, 80, 12, 0, 0, 6.3); c.fill(); if (!G.Sprites.drawChar(c, p[0], pname(t, p[3]), p[1], 480, p[2], 1.35 * (p[0].scale || 1))) { var J = R.solve(p[0].look, ppose(t, p[3]), p[1], 480, p[2], 1.35 * (p[0].scale || 1)); R.draw(pen, J, p[0].look, 'atk'); } });
     c.fillStyle = 'rgba(8,4,24,.35)'; c.fillRect(0, 0, W, 228);
     Brush.text(c, '台北格鬥風雲', W / 2, 142 + Math.sin(t * 2) * 3, 124, { style: 'gold', align: 'center' });
     UI.text(c, 'T A I P E I   F I G H T', W / 2, 206, 22, '#ffe8a0', 'center', { stroke: '#000', weight: 900, sw: 5 });
@@ -77,7 +78,7 @@
     [[this.a, 0], [this.b, 1]].forEach(function (p) {
       var ch = p[0], s = p[1], x0 = s ? W : 0, dx = (1 - k) * (s ? 500 : -500); c.save(); c.translate(dx, 0); var g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, hex(ch.color, 0)); g.addColorStop(.5, hex(ch.color, .55)); g.addColorStop(1, hex(ch.color, 0));
       c.fillStyle = g; c.beginPath(); if (s) { c.moveTo(W, 0); c.lineTo(W / 2 + 90, 0); c.lineTo(W / 2 - 60, H); c.lineTo(W, H); } else { c.moveTo(0, 0); c.lineTo(W / 2 + 60, 0); c.lineTo(W / 2 - 90, H); c.lineTo(0, H); } c.fill();
-      var J = R.solve(ch.look, R.POSE.intro, s ? W - 230 : 230, 420, s ? -1 : 1, 2.0 * (ch.scale || 1)); R.draw(pen, J, ch.look, 'atk');
+      if (!G.Sprites.drawChar(c, ch, 'intro', s ? W - 230 : 230, 420, s ? -1 : 1, 2.0 * (ch.scale || 1))) { var J = R.solve(ch.look, R.POSE.intro, s ? W - 230 : 230, 420, s ? -1 : 1, 2.0 * (ch.scale || 1)); R.draw(pen, J, ch.look, 'atk'); }
       Brush.text(c, ch.name, s ? W - 260 : 260, 470, 60, { style: s ? 'red' : 'cyan', align: 'center' }); c.restore();
     });
     Brush.text(c, '對', W / 2, 270, 150, { style: 'gold', scale: 1 + (1 - k) * 2, alpha: k });
@@ -95,7 +96,7 @@
   C.draw = function (c) {
     var t = this.t / 60, pen = new CanvasPen(c); this.stage.draw(c, 420, t); c.fillStyle = 'rgba(4,4,16,.5)'; c.fillRect(0, 0, W, H);
     for (var i = 0; i < 30; i++) { var a = (t * .5 + i / 30) % 1, x = (i * 137) % W, y = a * H; c.fillStyle = ['#ffd24a', '#ff6a4a', '#6ad8ff', '#fff'][i % 4]; c.fillRect(x, y, 6, 10); }
-    var J = R.solve(this.ch.look, t % 1 < .5 ? R.POSE.win : R.POSE.win2, W / 2, 440, 1, 2.1 * (this.ch.scale || 1)); R.draw(pen, J, this.ch.look, 'win');
+    if (!G.Sprites.drawChar(c, this.ch, 'win', W / 2, 440, 1, 2.1 * (this.ch.scale || 1))) { var J = R.solve(this.ch.look, t % 1 < .5 ? R.POSE.win : R.POSE.win2, W / 2, 440, 1, 2.1 * (this.ch.scale || 1)); R.draw(pen, J, this.ch.look, 'win'); }
     Brush.text(c, '街機通關', W / 2, 120, 110, { style: 'gold', align: 'center' }); UI.text(c, this.ch.name + ' 打倒了總統府的西裝男！', W / 2, 190, 26, '#fff', 'center', { stroke: '#000', weight: 900 });
     if (this.newly) UI.text(c, '已解鎖：最終 Boss「西裝男」可在選角畫面使用', W / 2, 232, 22, '#ffd24a', 'center', { stroke: '#000', weight: 900 });
     UI.text(c, '按確定 / 點一下 回到標題', W / 2, 516, 18, '#e8ecff', 'center', { stroke: '#000' });

@@ -6,7 +6,7 @@
     scene: null, cv: null, cx: null, S: 1, acc: 0, last: 0, run: null, paused: false,
     init: function () {
       var cv = this.cv = D.getElementById('game'), me = this; this.cx = cv.getContext('2d');
-      FI.init(); FTouch.init(); Brush.load('assets/');
+      FI.init(); FTouch.init(); Brush.load('assets/'); Sprites.load('assets/');
       this.resize(); G.addEventListener('resize', function () { me.resize(); }); G.addEventListener('orientationchange', function () { G.setTimeout(function () { me.resize(); }, 200); });
       function pt(e, type) { var r = cv.getBoundingClientRect(); var x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * H; if (me.scene && me.scene.pointer) me.scene.pointer(type, x, y); }
       cv.addEventListener('pointerdown', function (e) { pt(e, 'down'); }); cv.addEventListener('pointermove', function (e) { if (e.pointerType === 'mouse') pt(e, 'move'); });

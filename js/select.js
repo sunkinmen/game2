@@ -62,6 +62,7 @@
   P.portrait = function (c, ch, x, y, w, h, t, active) {
     c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip(); var g = c.createLinearGradient(x, y, x, y + h), col = ch.color; g.addColorStop(0, G.cssColor(col, .9)); g.addColorStop(1, G.cssColor(R.sh(col, .35), 1)); c.fillStyle = g; c.fillRect(x, y, w, h);
     c.fillStyle = 'rgba(255,255,255,.08)'; for (var i = -2; i < 8; i++) { c.beginPath(); c.moveTo(x + i * 30, y + h); c.lineTo(x + i * 30 + 40, y); c.lineTo(x + i * 30 + 60, y); c.lineTo(x + i * 30 + 20, y + h); c.fill(); }
+    var pim = G.Sprites.portrait(ch.id); if (pim) { var ks = Math.max(w / pim.naturalWidth, h / pim.naturalHeight), iw = pim.naturalWidth * ks, ih = pim.naturalHeight * ks; c.drawImage(pim, x + (w - iw) / 2, y, iw, ih); c.restore(); return; }
     var pen = new CanvasPen(c), sc = (h / 232) * (ch.scale || 1), br = active ? Math.sin(t * 3) * .5 + .5 : .5, pose = R.lerpPose(R.POSE.idleA, R.POSE.idleB, br);
     var J = R.solve(ch.look, pose, x + w * .46, y + h - 4, 1, sc); R.draw(pen, J, ch.look, 'n'); c.restore();
   };

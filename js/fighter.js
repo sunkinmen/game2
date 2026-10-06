@@ -313,8 +313,28 @@
     if (s === 'win' && this.pt > 0) this.expr = 'win'; if (s === 'lose') this.expr = 'hurt';
     if (s === 'down') this.expr = this.dead ? 'ko' : 'hurt';
   };
+  /* 目前姿勢的名稱（圖集角色用名稱挑圖格） */
+  FP._poseName = function () {
+    var s = this.state, ph, p;
+    switch (s) {
+      case 'idle': return 'idleA'; case 'walk': return 'walk'; case 'block': return 'blockH';
+      case 'crouch': return this.holdBack ? 'blockL' : 'crouch';
+      case 'air': return this.jdir > 0 ? 'jumpF' : this.jdir < 0 ? 'jumpB' : 'jump';
+      case 'blockstun': return this.holdDown ? 'blockL' : 'blockH';
+      case 'hurt': return this.landing ? 'crouch' : (this.hurtLvl === 'l' ? 'hurtL' : 'hurtH');
+      case 'launched': return this.dead && this.y <= 6 ? 'lie' : 'air';
+      case 'down': return 'lie'; case 'getup': return this.st > 8 ? 'getup' : 'idleA'; case 'grabbed': return 'grabbed';
+      case 'intro': return 'intro'; case 'win': return 'win'; case 'lose': return 'lose';
+      case 'attack': ph = this.phase(); p = ph && ph.pose; if (p instanceof Array) p = this.mf / Math.max(1, this.pn - 1) < .5 ? p[0] : p[1]; return p || 'idleA';
+    }
+    return 'idleA';
+  };
   FP.draw = function (pen, sx, gy, alpha) {
     var J = R.solve(this.look, this.pose, sx, gy - this.y, this.face, this.sc);
+    if (G.Sprites && G.Sprites.has(this.id)) {
+      var pn = this._poseName(), n = pn === 'walk' ? Math.floor(this.wp * 2.2 / 1.5708) : 0, bob = pn === 'idleA' ? Math.sin(this.pt * 3.2) * .012 : 0;
+      this.spriteName = pn; G.Sprites.draw(pen.c, this.id, G.Sprites.frame(this.id, pn, n), sx, gy - this.y, this.face, this.sc, alpha, bob); return J;
+    }
     if (this.hitFlash > 0 || alpha != null) { /* 受擊閃白由 scene 在外層處理 */ }
     R.draw(pen, J, this.look, this.expr);
     return J;

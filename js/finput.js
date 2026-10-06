@@ -123,7 +123,7 @@
     _key: function (e, down) {
       var t = e.target, tag = t && t.tagName, code = e.code || e.key, inForm = tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA';
       if (down && !e.repeat) {
-        var nav = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right', Enter: 'ok', KeyJ: 'ok', Space: 'ok', Escape: 'back', Backspace: 'back', KeyK: 'back', KeyP: 'pause' }[code];
+        var nav = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right', Enter: 'ok', KeyJ: 'ok', Space: 'ok', Escape: 'back', Backspace: 'back', KeyP: 'pause' }[code];
         if (nav && !inForm) this.emit('nav', nav);
       }
       if (inForm || this.modal) return;

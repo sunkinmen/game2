@@ -281,7 +281,7 @@
     c.save(); c.translate(W / 2, H / 2); for (i = 0; i < 46; i++) { var a = i / 46 * 6.283 + k * .2; c.strokeStyle = hex(col, .3 + (i % 3) * .1); c.lineWidth = 2 + (i % 4); c.beginPath(); c.moveTo(Math.cos(a) * 120, Math.sin(a) * 120); c.lineTo(Math.cos(a) * 760, Math.sin(a) * 760); c.stroke(); } c.restore();
     var sl = Math.min(1, k * 4), bx = (side === 0 ? -1 : 1) * (1 - sl) * 600;
     c.save(); c.translate(bx, 0); var g = c.createLinearGradient(0, 150, 0, 390); g.addColorStop(0, hex(col, .0)); g.addColorStop(.2, hex(col, .8)); g.addColorStop(.8, hex(col, .8)); g.addColorStop(1, hex(col, 0)); c.fillStyle = g; c.fillRect(0, 150, W, 240);
-    var J = R.solve(ch.look, R.POSE.cast1, side === 0 ? 250 : W - 250, 400, side === 0 ? 1 : -1, 2.0 * (ch.scale || 1)); c.save(); c.beginPath(); c.rect(0, 120, W, 300); c.clip(); R.draw(pen, J, ch.look, 'ult'); c.restore();
+    c.save(); c.beginPath(); c.rect(0, 120, W, 300); c.clip(); if (!G.Sprites.drawChar(c, ch, 'cast1', side === 0 ? 250 : W - 250, 410, side === 0 ? 1 : -1, 1.5 * (ch.scale || 1))) { var J = R.solve(ch.look, R.POSE.cast1, side === 0 ? 250 : W - 250, 400, side === 0 ? 1 : -1, 2.0 * (ch.scale || 1)); R.draw(pen, J, ch.look, 'ult'); } c.restore();
     Brush.text(c, u.mv.name, side === 0 ? 640 : 320, 280, 92 + Math.sin(k * 20) * 3, { style: 'gold', rot: side === 0 ? -.06 : .06 });
     UI.text(c, ch.name + '・必殺', side === 0 ? 640 : 320, 340, 22, '#fff', 'center', { stroke: '#000', weight: 900 });
     c.restore();
@@ -327,7 +327,7 @@
     var r = this.result, k = Math.min(1, this.overT / 20), w = r.winner, o = this.o; c.fillStyle = 'rgba(4,4,16,' + .72 * k + ')'; c.fillRect(0, 0, W, H);
     var title = o.mode === 'arcade' ? (w === 0 ? (o.last ? '街機通關！' : '勝利') : '挑戰失敗') : this.fs[w].ch.name + ' 獲勝';
     Brush.text(c, title, W / 2, 130, 92, { style: w === 0 || o.mode !== 'arcade' ? 'gold' : 'red', alpha: k });
-    var f = this.fs[w]; var pen = new CanvasPen(c); var J = R.solve(f.look, R.POSE.win2, 160, 300, 1, 1.5 * f.sc); R.draw(pen, J, f.look, 'win'); var L2 = this.fs[1 - w], J2 = R.solve(L2.look, R.POSE.lose, 800, 300, -1, 1.2 * L2.sc); R.draw(pen, J2, L2.look, 'hurt');
+    var f = this.fs[w]; var pen = new CanvasPen(c); if (!G.Sprites.drawChar(c, f, 'win', 160, 300, 1, 1.5 * f.sc)) { var J = R.solve(f.look, R.POSE.win2, 160, 300, 1, 1.5 * f.sc); R.draw(pen, J, f.look, 'win'); } var L2 = this.fs[1 - w]; if (!G.Sprites.drawChar(c, L2, 'lose', 800, 300, -1, 1.2 * L2.sc)) { var J2 = R.solve(L2.look, R.POSE.lose, 800, 300, -1, 1.2 * L2.sc); R.draw(pen, J2, L2.look, 'hurt'); }
     UI.text(c, '「' + f.ch.lines.win + '」', W / 2, 205, 24, '#fff', 'center', { stroke: '#000', weight: 800 });
     UI.text(c, '最大連擊 ' + r.maxCombo + '　　回合 ' + r.wins[0] + ' : ' + r.wins[1], W / 2, 250, 20, '#ffe8a0', 'center', { stroke: '#000', weight: 800 });
     if (this.endList) UI.drawList(c, this.endList, this.t / 60);

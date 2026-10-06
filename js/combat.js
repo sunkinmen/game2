@@ -49,7 +49,7 @@
   FP.dust = function (x, y, n) { for (var i = 0; i < (n || 6); i++) this.add({ k: 'dust', x: x + (Math.random() - .5) * 40, y: y, vx: (Math.random() - .5) * 3, vy: -Math.random() * 1.5, r: 5 + Math.random() * 7, life: 22, t: 0, c: 0xd8d0c0 }); };
   FP.text = function (x, y, s, c, size) { this.texts.push({ x: x, y: y, s: s, c: c, size: size || 22, t: 0, life: 40 }); };
   FP.line = function (x1, y1, x2, y2, c, w, life) { this.add({ k: 'line', x: x1, y: y1, x2: x2, y2: y2, c: c, w: w || 3, life: life || 8, t: 0 }); };
-  FP.trail = function (f, c) { this.add({ k: 'ghost', f: f, c: c, life: 10, t: 0, pose: f.pose, x: f.x, y: f.y, face: f.face }); };
+  FP.trail = function (f, c) { this.add({ k: 'ghost', f: f, c: c, life: 10, t: 0, pose: f.pose, fn: f._poseName ? f._poseName() : null, x: f.x, y: f.y, face: f.face }); };
   FP.update = function () {
     var i, p, ps = this.ps;
     for (i = ps.length - 1; i >= 0; i--) { p = ps[i]; p.t++; if (p.vx != null) { p.x += p.vx; p.y += p.vy; if (p.g) p.vy += p.g; p.vx *= .96; } if (p.rv) p.r += p.rv; if (p.t >= p.life) ps.splice(i, 1); }
@@ -63,7 +63,7 @@
       else if (p.k === 'dot') { c.fillStyle = hex(p.c, a); c.beginPath(); c.arc(p.x - camX, p.y, p.r * a + .5, 0, 6.283); c.fill(); }
       else if (p.k === 'ring') { c.strokeStyle = hex(p.c, a); c.lineWidth = p.w * a + 1; c.beginPath(); c.arc(p.x - camX, p.y, p.r, 0, 6.283); c.stroke(); }
       else if (p.k === 'dust') { c.fillStyle = hex(p.c, a * .5); c.beginPath(); c.arc(p.x - camX, p.y, p.r * (1 + k), 0, 6.283); c.fill(); }
-      else if (p.k === 'ghost') { c.save(); c.globalAlpha = .34 * a; c.globalCompositeOperation = 'lighter'; var J = G.Rig.solve(p.f.look, p.pose, p.x - camX, CFG.GROUND - p.y, p.face, p.f.sc); G.Rig.draw(new G.CanvasPen(c), J, p.f.look, 'n'); c.restore(); }
+      else if (p.k === 'ghost') { c.save(); c.globalAlpha = .34 * a; c.globalCompositeOperation = 'lighter'; if (G.Sprites && G.Sprites.has(p.f.id)) G.Sprites.draw(c, p.f.id, G.Sprites.frame(p.f.id, p.fn, 0), p.x - camX, CFG.GROUND - p.y, p.face, p.f.sc); else { var J = G.Rig.solve(p.f.look, p.pose, p.x - camX, CFG.GROUND - p.y, p.face, p.f.sc); G.Rig.draw(new G.CanvasPen(c), J, p.f.look, 'n'); } c.restore(); }
       else if (p.k === 'line') { c.strokeStyle = hex(p.c, a); c.lineWidth = p.w * a + 1; c.beginPath(); c.moveTo(p.x - camX, p.y); c.lineTo(p.x2 - camX, p.y2); c.stroke(); }
     }
   };

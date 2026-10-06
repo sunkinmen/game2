@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a1a2a"/><stop offset="1" stop-color="#2a0a2a"/></linearGradient>
+    <linearGradient id="t" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6c0"/><stop offset=".5" stop-color="#ffc93a"/><stop offset="1" stop-color="#d8741a"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#g)"/>
+  <g stroke="#ffd870" stroke-width="6" opacity=".35"><path d="M256 256 L0 40M256 256 L120 0M256 256 L400 0M256 256 L512 60M256 256 L512 300M256 256 L0 300"/></g>
+  <circle cx="256" cy="230" r="150" fill="#ff5a3a" opacity=".35"/>
+  <text x="256" y="300" text-anchor="middle" font-family="'Noto Serif TC','Songti TC',serif" font-weight="900" font-size="240" fill="#1a0408" stroke="#1a0408" stroke-width="30" stroke-linejoin="round">鬥</text>
+  <text x="256" y="300" text-anchor="middle" font-family="'Noto Serif TC','Songti TC',serif" font-weight="900" font-size="240" fill="url(#t)">鬥</text>
+  <text x="256" y="440" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="54" letter-spacing="10" fill="#fff" stroke="#1a0408" stroke-width="8" paint-order="stroke">TAIPEI FIGHT</text>
+</svg>

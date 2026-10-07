@@ -34,7 +34,7 @@
     var s = this.cur();
     if (s === 'stage') { this.picks.stage = this.stageSel; this.finish(); return; }
     if (this.locked(this.sel)) { FX.play('back'); return; }
-    this.picks[s] = this.list[this.sel].id; FX.play('ok'); FX.say(this.list[this.sel].name, this.list[this.sel].tts);
+    this.picks[s] = this.list[this.sel].id; FX.play('ok'); FX.say(this.list[this.sel].name, this.list[this.sel].tts, false, this.list[this.sel].id + '/name'); FX.preloadVoice && FX.preloadVoice(this.list[this.sel].id);
     this.step++;
     if (this.cur() === 'stage') this.stageSel = HOME[this.picks.p2 || this.picks.p1] === 7 && !this.bossOpen() ? 0 : (HOME[this.picks.p2 || this.picks.p1] || 0);
     else if (this.step >= this.o.steps.length) this.finish();

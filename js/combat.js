@@ -32,7 +32,7 @@
     if (this.x < -80 || this.x > CFG.STAGE_W + 80) this.dead = true;
   };
   PP.dmgObj = function () {
-    var s = this.sp; return { dmg: Math.round(s.dmg * this.dmgMul), hs: s.hs, bs: s.bs, kb: s.kb, lvl: s.lvl || 'm', kd: s.kd, launch: s.launch, pull: s.pull, stop: s.dmg < 35 ? 2 : 4, sfx: 'proj_hit' };
+    var s = this.sp; return { dmg: Math.round(s.dmg * this.dmgMul), hs: s.hs, bs: s.bs, kb: s.kb, lvl: s.lvl || 'm', kd: s.kd, launch: s.launch, pull: s.pull, stop: s.ex ? 9 : s.dmg < 35 ? 2 : 4, sfx: 'proj_hit', gd: s.gd, ex: s.ex };
   };
 
   /* ---------- 特效粒子 ---------- */

@@ -13,15 +13,16 @@
   function TitleScene(game, o) { this.game = game; this.o = o || {}; }
   var T = TitleScene.prototype;
   T.enter = function () {
-    var me = this, g = this.game; this.t = 0; FTouch.show(null); this.stage = bgStage(0); var a = Roster.chars, i = (Math.random() * a.length) | 0; this.a = a[i]; this.b = a[(i + 3) % a.length];
+    var me = this, g = this.game; this.t = 0; FTouch.show(null); this.stage = bgStage(0); var a = Roster.chars, i = (Math.random() * a.length) | 0; this.a = a[i]; this.b = a[(i + 3) % a.length]; G.Sprites.ensure(this.a.id); G.Sprites.ensure(this.b.id);
     function sel(mode, steps, title) { g.go(function () { return new SelectScene(g, { mode: mode, steps: steps, back: function () { g.toTitle(); }, done: function (p) { g.launch(mode, p); } }); }); }
-    this.list = UI.list([
+    var tut = { label: '新手教學', onOk: function () { g.go(function () { return new TutorialScene(g); }); } }, done = G.SaveManager.get('tutorialDone', false);
+    this.list = UI.list((done ? [] : [tut]).concat([
       { label: '街機模式', onOk: function () { sel('arcade', ['p1']); } },
       { label: '對戰電腦', onOk: function () { sel('cpu', ['p1', 'p2', 'stage']); } },
       { label: '雙人對戰', onOk: function () { sel('vs2p', ['p1', 'p2', 'stage']); } },
       { label: '訓練場', onOk: function () { sel('train', ['p1', 'p2', 'stage']); } },
-      { label: '招式表', onOk: function () { g.go(function () { return new MoveBookScene(g); }); } },
-      { label: '設定', onOk: function () { g.go(function () { return new SettingsScene(g); }); } }], 340, 236, 280, 40, { size: 24, center: true });
+      { label: '招式表', onOk: function () { g.go(function () { return new MoveBookScene(g); }); } }]).concat(done ? [tut] : []).concat([
+      { label: '設定', onOk: function () { g.go(function () { return new SettingsScene(g); }); } }]), 340, 232, 280, 35.5, { size: 22, center: true });
     this._off = FI.on('nav', function (d) { UI.nav(me.list, d); });
     FX.music('menu');
   };
@@ -37,7 +38,7 @@
     UI.text(c, 'T A I P E I   F I G H T', W / 2, 206, 22, '#ffe8a0', 'center', { stroke: '#000', weight: 900, sw: 5 });
     UI.rr(c, 322, 228, 316, 252, 18); c.fillStyle = 'rgba(8,6,26,.62)'; c.fill(); c.lineWidth = 2; c.strokeStyle = 'rgba(232,184,74,.6)'; c.stroke();
     UI.drawList(c, this.list, t);
-    UI.text(c, 'v' + CFG.VERSION + '　8 位台北英雄 ＋ 最終 Boss　按任意鍵 / 點一下 開始', W / 2, 520, 14, 'rgba(230,236,255,.85)', 'center', { stroke: '#000', sw: 3 });
+    UI.text(c, 'v' + CFG.VERSION + '　8 位台北英雄 ＋ 最終 Boss　按任意鍵 / 點一下 開始' + (G.SaveManager.get('tutorialDone', false) ? '' : '　（第一次玩？先選「新手教學」）'), W / 2, 520, 14, 'rgba(230,236,255,.85)', 'center', { stroke: '#000', sw: 3 });
   };
 
   /* ---------- 設定 ---------- */

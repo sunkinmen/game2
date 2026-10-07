@@ -5,10 +5,10 @@
  * mode=1：單人（P1 可用 WASD 或方向鍵）；mode=2：雙人（P1 = WASD+JKL+UIO，P2 = 方向鍵+,./+;'] ）。 */
 (function (G) {
   'use strict';
-  var BT = ['p', 'k', 'j', 's1', 's2', 's3'], DR = ['l', 'r', 'u', 'd'];
-  var KM1 = { KeyA: 'l', KeyD: 'r', KeyW: 'u', KeyS: 'd', ArrowLeft: 'l', ArrowRight: 'r', ArrowUp: 'u', ArrowDown: 'd', KeyJ: 'p', KeyK: 'k', KeyL: 'j', Space: 'j', KeyU: 's1', KeyI: 's2', KeyO: 's3' };
-  var KM2A = { KeyA: 'l', KeyD: 'r', KeyW: 'u', KeyS: 'd', KeyJ: 'p', KeyK: 'k', KeyL: 'j', KeyU: 's1', KeyI: 's2', KeyO: 's3' };
-  var KM2B = { ArrowLeft: 'l', ArrowRight: 'r', ArrowUp: 'u', ArrowDown: 'd', Comma: 'p', Period: 'k', Slash: 'j', Numpad4: 'p', Numpad5: 'k', Numpad6: 'j', Semicolon: 's1', Quote: 's2', BracketRight: 's3', Numpad7: 's1', Numpad8: 's2', Numpad9: 's3' };
+  var BT = ['p', 'k', 'j', 's1', 's2', 's3', 'ex'], DR = ['l', 'r', 'u', 'd'];
+  var KM1 = { KeyA: 'l', KeyD: 'r', KeyW: 'u', KeyS: 'd', ArrowLeft: 'l', ArrowRight: 'r', ArrowUp: 'u', ArrowDown: 'd', KeyJ: 'p', KeyK: 'k', KeyL: 'j', Space: 'j', KeyU: 's1', KeyI: 's2', KeyO: 's3', KeyH: 'ex' };
+  var KM2A = { KeyA: 'l', KeyD: 'r', KeyW: 'u', KeyS: 'd', KeyJ: 'p', KeyK: 'k', KeyL: 'j', KeyU: 's1', KeyI: 's2', KeyO: 's3', KeyH: 'ex' };
+  var KM2B = { ArrowLeft: 'l', ArrowRight: 'r', ArrowUp: 'u', ArrowDown: 'd', Comma: 'p', Period: 'k', Slash: 'j', Numpad4: 'p', Numpad5: 'k', Numpad6: 'j', Semicolon: 's1', Quote: 's2', BracketRight: 's3', Numpad7: 's1', Numpad8: 's2', Numpad9: 's3', Numpad0: 'ex', ShiftRight: 'ex' };
   function mk() { var o = {}, i; for (i = 0; i < DR.length; i++) o[DR[i]] = 0; for (i = 0; i < BT.length; i++) o[BT[i]] = 0; return o; }
   function mkb() { var o = {}, i; for (i = 0; i < BT.length; i++) o[BT[i]] = false; return o; }
 

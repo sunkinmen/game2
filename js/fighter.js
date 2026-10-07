@@ -21,7 +21,7 @@
     this.hp = this.maxHp; this.state = 'idle'; this.st = 0; this.pose = R.lerpPose(POSE.idleA, POSE.idleA, 0); this.pt = 0; this.wp = 0;
     this.move = null; this.mi = 0; this.mf = 0; this.pn = 1; this.hitDone = false; this.rehitT = 0; this.hitConfirmed = false; this.grabOK = false; this.grabDone = false; this.chainN = 0;
     this.inv = false; this.reflect = false; this.buff = null; this.frame = 0; this.hist.length = 0; this.hist.push({ d: 5, f: 0 }); this.chg = 0; this.chgG = 0;
-    this.buf = { p: 0, k: 0, j: 0, s1: 0, s2: 0, s3: 0 }; this.pf = { p: -99, k: -99 }; this.combo = 0; this.comboDmg = 0; this.airUsed = false; this.expr = 'n';
+    this.buf = { p: 0, k: 0, j: 0, s1: 0, s2: 0, s3: 0, ex: 0 }; this.gg = 0; this.gT = 0; this.crushed = false; this.exFlash = 0; this.exHeld = false; this.pf = { p: -99, k: -99 }; this.combo = 0; this.comboDmg = 0; this.airUsed = false; this.expr = 'n';
     this.hurtLvl = 'h'; this.blocking = false; this.crouching = false; this.dead = false; this.lastHit = null; this.curDir = 5; this.meterFlash = 0; this.hitFlash = 0; this.stun = 0;
     this.holder = null; this.holdSpec = null; this.speak = 0;
     if (this.meter == null) this.meter = 0;
@@ -79,9 +79,22 @@
     if (mv.air && this.y <= 0) this.y = 0;
     this._next();
   };
-  FP.startSpecial = function (n, scene) {
+  var EXC = 30;                                                    // EX 必殺耗氣
+  FP.exMove = function (mv) {                                      // 由原招式衍生 EX 版：無敵起手、傷害 ×1.3、更強的擊退 / 彈道
+    if (mv._ex) return mv._ex; var o = {}, k; for (k in mv) o[k] = mv[k]; o.name = mv.name + ' EX'; o.ex = true;
+    o.phases = mv.phases.map(function (ph, i) {
+      var p = {}, q; for (q in ph) p[q] = ph[q]; if (i === 0) p.inv = true;
+      if (ph.hit) { p.hit = {}; for (q in ph.hit) p.hit[q] = ph.hit[q]; p.hit.dmg = Math.round(ph.hit.dmg * 1.3); p.hit.hs = (ph.hit.hs || 16) + 4; p.hit.bs = (ph.hit.bs || 10) + 4; p.hit.gd = (ph.hit.gd != null ? ph.hit.gd : ph.hit.dmg * .4) * 1.8; p.hit.stop = Math.max(ph.hit.stop || 4, 8); p.hit.ex = true; }
+      if (ph.spawn) { p.spawn = {}; for (q in ph.spawn) p.spawn[q] = ph.spawn[q]; p.spawn.dmg = Math.round(ph.spawn.dmg * 1.3); p.spawn.w = (ph.spawn.w || 44) * 1.25; p.spawn.h = (ph.spawn.h || 44) * 1.25; p.spawn.hs = (ph.spawn.hs || 18) + 4; p.spawn.bs = (ph.spawn.bs || 10) + 4; p.spawn.gd = ph.spawn.dmg * .8; p.spawn.ex = true; if (p.spawn.vx) p.spawn.vx *= 1.2; }
+      return p;
+    });
+    return (mv._ex = o);
+  };
+  FP.wantEx = function (n) { return n !== 3 && this.meter >= EXC && (this.exHeld || this.buf.ex > 0); };
+  FP.startSpecial = function (n, scene, ex) {
     var mv = M.special(this.id, n); if (!mv) return false;
     if (n === 3) { if (this.meter < 100) return false; this.meter = 0; this.meterFlash = 20; scene && scene.onUltStart && scene.onUltStart(this, mv); }
+    else if (ex && this.meter >= EXC) { this.meter -= EXC; this.meterFlash = 14; this.buf.ex = 0; mv = this.exMove(mv); this.exFlash = 24; scene && scene.onExStart && scene.onExStart(this, mv); }
     this.startMove(mv, false); return true;
   };
   FP._next = function () {                                         // 進入下一個可執行的 phase
@@ -93,7 +106,7 @@
     this.mf = 0; this.hitDone = false; this.rehitT = 0; this.grabDone = false; this.pn = Math.max(1, Math.round(ph.n * (this.isNormal ? (this.ch.spdMul || 1) : 1)));
     this.inv = !!ph.inv; this.reflect = !!ph.reflect; this.counter = ph.counter || null;
     if (ph.sfx) G.FxAudio.play(ph.sfx);
-    if (ph.voice) G.FxAudio.grunt(this.ch.tts.pitch, ph.voice);
+    if (ph.voice) G.FxAudio.grunt(this.ch.tts.pitch, ph.voice, this.id);
     if (ph.vy != null) this.vy = ph.vy; if (ph.vyd != null) this.vy = ph.vyd;
     if (ph.vx != null) this.vx = ph.vx * this.face; else if (!this.move.flying) this.vx = 0;
     if (ph.buff) { this.buff = { dmg: ph.buff.dmg, t: ph.buff.t }; this.maskFlash = 30; }
@@ -123,12 +136,14 @@
     var sc = this.scene, guard = this.canGuard(h);
     if (guard) {
       res.hit = true; res.blocked = true; this.state = 'blockstun'; this.st = h.bs || 10; this.blocking = true;
+      var gd = (h.gd != null ? h.gd : Math.max(7, h.dmg * .38)) * (isProj ? .75 : 1); this.gg += gd; this.gT = 0;
+      if (this.gg >= 100) { res.crush = true; this.gg = 0; this.crushed = true; this.state = 'hurt'; this.st = 66; this.hurtLvl = 'h'; this.blocking = false; this.stun = 66; this.expr = 'hurtH'; this.kbv = -att.face * 5; att.meter = Math.min(100, att.meter + 12); this.scene && this.scene.crushFx && this.scene.crushFx(this, att); return res; }
       var chip = (isProj || h.dmg >= 60) ? Math.round(h.dmg * .09 * (att.ch.dmg || 1)) : 0; if (this.hp - chip < 1) chip = Math.max(0, this.hp - 1); this.hp -= chip; res.dmg = chip;
       this.kbv = -att.face * Math.min(9, (h.kb || 4) * .8 + 2); this.meter = Math.min(100, this.meter + h.dmg * .04); att.meter = Math.min(100, att.meter + h.dmg * .05);
       if (h.pull) res.hit = true;
       return res;
     }
-    var scale = Math.max(.35, 1 - (att.combo) * .1), dmg = Math.round(h.dmg * (att.ch.dmg || 1) * (att.buff ? att.buff.dmg : 1) * scale);
+    var scale = Math.max(.35, 1 - (att.combo) * .1), dmg = Math.round(h.dmg * (att.ch.dmg || 1) * (att.buff ? att.buff.dmg : 1) * scale * (this.crushed ? 1.25 : 1) * (this.state === 'attack' && !this.crushed ? 1.15 : 1)); if (this.state === 'attack') res.chit = true; this.crushed = false; this.gT = 0;
     res.hit = true; res.dmg = dmg; this.hp = Math.max(0, this.hp - dmg); att.combo++; att.comboDmg += dmg; this.hitFlash = 6;
     att.meter = Math.min(100, att.meter + dmg * .13); this.meter = Math.min(100, this.meter + dmg * .1); this.lastHit = h;
     var wasAir = this.y > 0 || this.state === 'launched';
@@ -140,7 +155,7 @@
     } else { this.state = 'hurt'; this.st = h.hs || 16; this.kbv = att.face * (h.kb || 4); this.vx = 0; }
     if (h.pull) { this.x = att.x + att.face * h.pull * att.sc; this.kbv = 0; this.state = 'hurt'; this.st = h.hs || 20; }
     this.stun = this.st;
-    G.FxAudio.grunt(this.ch.tts.pitch, 'hurt');
+    G.FxAudio.grunt(this.ch.tts.pitch, 'hurt', this.id);
     return res;
   };
   FP.ko = function (att, h) {
@@ -156,7 +171,7 @@
     this.move = null; this.inv = false; this.reflect = false; this.counter = null; this.crouching = false; this.expr = 'hurtH'; this.hurtLvl = 'h'; this.hitFlash = 6; this.holder = null; this.landing = false;
     if (this.hp <= 0) { this.dead = true; this.expr = 'ko'; }
     this.state = 'launched'; this.vx = from.face * spec.launch[0]; this.vy = spec.launch[1]; this.kbv = 0; if (this.y <= 0) this.y = 1;
-    G.FxAudio.play(spec.sfx || 'throw'); G.FxAudio.grunt(this.ch.tts.pitch, this.dead ? 'ko' : 'hurt');
+    G.FxAudio.play(spec.sfx || 'throw'); G.FxAudio.grunt(this.ch.tts.pitch, this.dead ? 'ko' : 'hurt', this.id);
   };
   FP.grabbed = function (by, spec) {
     this.state = 'grabbed'; this.move = null; this.inv = false; this.reflect = false; this.counter = null; this.holder = by; this.crouching = false; this.expr = 'hurtH'; this.vx = 0; this.vy = 0; this.kbv = 0;
@@ -172,6 +187,7 @@
     for (k in this.buf) { if (this.buf[k] > 0) this.buf[k]--; if (inp['x' + k]) { this.buf[k] = 6; if (k === 'p' || k === 'k') this.pf[k] = this.frame; } }
     var r = this.rel(inp); this.holdBack = r.f < 0; this.holdDown = r.v < 0;
     if (this.buff && --this.buff.t <= 0) this.buff = null;
+    this.exHeld = !!inp.ex; if (this.exFlash > 0) this.exFlash--; if (this.gg > 0 && s !== 'blockstun' && !this.crushed && ++this.gT > 45) this.gg = Math.max(0, this.gg - .45);
     if (this.rehitT > 0) this.rehitT--; if (this.meterFlash > 0) this.meterFlash--; if (this.hitFlash > 0) this.hitFlash--; if (this.maskFlash > 0) this.maskFlash--;
     this.pt += 1 / 60;
 
@@ -181,7 +197,7 @@
     if (CTRL[s]) this._ground(inp, r, opp);
     else if (s === 'air') this._air(inp, r, opp);
     else if (s === 'attack') this._attack(inp, r, opp);
-    else if (s === 'hurt') { if (--this.st <= 0) { this.state = 'idle'; this.expr = 'n'; this.landing = false; } }
+    else if (s === 'hurt') { if (--this.st <= 0) { this.state = 'idle'; this.expr = 'n'; this.landing = false; this.crushed = false; } }
     else if (s === 'blockstun') { if (--this.st <= 0) { this.state = 'idle'; this.blocking = false; } }
     else if (s === 'launched') { /* 物理處理在下方 */ }
     else if (s === 'down') { if (!this.dead && --this.st <= 0) { this.state = 'getup'; this.st = 16; } }
@@ -238,12 +254,12 @@
     var i, mv, ids = [3, 1, 2], dist = Math.abs(opp.x - this.x);
     for (i = 0; i < 3; i++) {
       var n = ids[i]; mv = M.special(this.id, n); if (!mv) continue;
-      if (this.want('s' + n)) { if (n === 3 && this.meter < 100) { this.eat('s3'); continue; } this.eat('s' + n); if (this.startSpecial(n, this.scene)) return true; }
+      if (this.want('s' + n)) { if (n === 3 && this.meter < 100) { this.eat('s3'); continue; } this.eat('s' + n); if (this.startSpecial(n, this.scene, this.wantEx(n))) return true; }
     }
     for (i = 0; i < 3; i++) {
       n = ids[i]; mv = M.special(this.id, n); if (!mv) continue;
       if (n === 3 && this.meter < 100) continue;
-      if (this.want(mv.btn) && this.cmd(mv.cmd)) { this.eat(mv.btn); if (this.startSpecial(n, this.scene)) return true; }
+      if (this.want(mv.btn) && this.cmd(mv.cmd)) { this.eat(mv.btn); if (this.startSpecial(n, this.scene, this.wantEx(n))) return true; }
     }
     return this._normals(inp, r, opp, dist);
   };
@@ -262,7 +278,7 @@
       var ids = [3, 1, 2];
       for (i = 0; i < 3; i++) { n = ids[i]; m = M.special(this.id, n); if (!m) continue;
         var go = this.want('s' + n) || (this.want(m.btn) && this.cmd(m.cmd));
-        if (go && (n !== 3 || this.meter >= 100)) { this.eat('s' + n); this.eat(m.btn); if (this.startSpecial(n, this.scene)) return; }
+        if (go && (n !== 3 || this.meter >= 100)) { this.eat('s' + n); this.eat(m.btn); if (this.startSpecial(n, this.scene, this.wantEx(n))) return; }
       }
       if (mv.chain && this.chainN < 3 && this.mi >= 1 && !mv.air) {
         var N = M.NORMAL, nm = null;

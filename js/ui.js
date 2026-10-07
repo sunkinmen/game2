@@ -60,7 +60,8 @@
       cyc('每場回合數', 'wins', [1, 2, 3], ['1 回合', '2 勝制', '3 勝制']), cyc('回合時間', 'time', [30, 60, 99], ['30 秒', '60 秒', '99 秒']), cyc('CPU 難度', 'diff', [0, 1, 2], ['簡單', '普通', '困難']),
       cyc('畫面震動', 'shake', [0, 1, 2], ['關', '標準', '強']), cyc('觸控按鍵', 'touch', ['auto', 'on', 'off'], ['自動', '一律顯示', '隱藏']),
       num('按鍵大小', 'btnSize', .7, 1.5, .1, function (v) { return Math.round(v * 100) + '%'; }), num('按鍵透明度', 'btnOpacity', .2, .95, .15, function (v) { return Math.round(v * 100) + '%'; }),
-      tog('左手模式（左右對調）', 'leftHand'), tog('觸控震動', 'vibrate')
+      tog('左手模式（左右對調）', 'leftHand'), tog('觸控震動', 'vibrate'),
+      cyc('畫質', 'quality', ['auto', 'high', 'mid', 'low'], ['自動', '高', '中', '低（省電）']), tog('顯示 FPS', 'showFps')
     ];
   };
   UI.drawMoves = function (c, ch, x, y, w) {

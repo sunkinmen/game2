@@ -66,12 +66,11 @@
   };
   BY.yu = {
     s1: { name: '珍珠連射', cmd: '236', btn: 'p', phases: [P(10, 'cast0'),
-      P(6, 'cast1', { sfx: 'proj', spawn: Sp({ kind: 'pearl', x: 80, y: 120, vx: 8.5, life: 60, dmg: 26, hs: 14, bs: 10, w: 26, h: 26, kb: 3, color: 0x2a1a14 }) }),
-      P(6, 'cast1', { sfx: 'proj', spawn: Sp({ kind: 'pearl', x: 80, y: 112, vx: 8.5, life: 60, dmg: 26, hs: 14, bs: 10, w: 26, h: 26, kb: 3, color: 0x2a1a14 }) }),
-      P(6, 'cast1', { sfx: 'proj', spawn: Sp({ kind: 'pearl', x: 80, y: 128, vx: 8.5, life: 60, dmg: 26, hs: 14, bs: 10, w: 26, h: 26, kb: 3, color: 0x2a1a14 }) }),
-      P(6, 'cast1', { sfx: 'proj', spawn: Sp({ kind: 'pearl', x: 80, y: 120, vx: 8.5, life: 60, dmg: 30, hs: 18, bs: 10, w: 28, h: 28, kb: 5, color: 0x2a1a14 }) }), P(16, 'cast1')] },
-    s2: { name: '搖杯回力', cmd: '214', btn: 'p', phases: [P(9, 'cast0'), P(5, 'cast1', { sfx: 'proj', spawn: Sp({ kind: 'cup', x: 60, y: 110, vx: 5.5, life: 80, boom: 1, dmg: 46, hs: 18, bs: 11, w: 40, h: 46, kb: 4, color: 0xe8c8a0 }) }), P(18, 'cast1')] },
-    ult: { name: '滿杯暴擊', cmd: '236236', btn: 'p', phases: [P(16, 'cast0', { inv: true }), P(10, 'cast1', { sfx: 'proj', spawn: Sp({ kind: 'beam', x: 40, y: 110, vx: 0, life: 44, dmg: 22, hs: 14, bs: 10, w: 560, h: 96, kb: 2, rehit: 4, color: 0xff8fb4, fixed: 1, noBlockStop: 1 }) }), P(40, 'cast1'), P(16, 'cast1', { hit: H([20, 160, 20, 190], 90, 40, 20, { kd: 1, launch: [8, 8], sfx: 'hit_h', stop: 10 }) })] }
+      P(6, 'cast1', { sfx: 'proj', spawn: Sp({ kind: 'pearl', x: 80, y: 120, vx: 7.5, life: 50, dmg: 14, hs: 8, bs: 10, w: 26, h: 26, kb: 4, color: 0x2a1a14 }) }),
+      P(6, 'cast1', { sfx: 'proj', spawn: Sp({ kind: 'pearl', x: 80, y: 112, vx: 7.5, life: 50, dmg: 14, hs: 8, bs: 10, w: 26, h: 26, kb: 4, color: 0x2a1a14 }) }),
+            P(6, 'cast1', { sfx: 'proj', spawn: Sp({ kind: 'pearl', x: 80, y: 120, vx: 7.5, life: 50, dmg: 18, hs: 12, bs: 10, w: 28, h: 28, kb: 5, color: 0x2a1a14 }) }), P(26, 'cast1')] },
+    s2: { name: '搖杯回力', cmd: '214', btn: 'p', phases: [P(9, 'cast0'), P(5, 'cast1', { sfx: 'proj', spawn: Sp({ kind: 'cup', x: 60, y: 110, vx: 5.5, life: 80, boom: 1, dmg: 36, hs: 18, bs: 11, w: 40, h: 46, kb: 4, color: 0xe8c8a0 }) }), P(26, 'cast1')] },
+    ult: { name: '滿杯暴擊', cmd: '236236', btn: 'p', phases: [P(16, 'cast0', { inv: true }), P(10, 'cast1', { sfx: 'proj', spawn: Sp({ kind: 'beam', x: 40, y: 110, vx: 0, life: 44, dmg: 13, hs: 14, bs: 10, w: 560, h: 96, kb: 2, rehit: 6, color: 0xff8fb4, fixed: 1, noBlockStop: 1 }) }), P(40, 'cast1'), P(16, 'cast1', { hit: H([20, 160, 20, 190], 90, 40, 20, { kd: 1, launch: [8, 8], sfx: 'hit_h', stop: 10 }) })] }
   };
   BY.feng = {
     s1: { name: '水袖纏', cmd: '214', btn: 'p', phases: [P(9, 'cast0'), P(5, 'cast1', { sfx: 'whoosh2', spawn: Sp({ kind: 'sleeve', x: 50, y: 118, vx: 11, life: 20, dmg: 30, hs: 26, bs: 12, w: 60, h: 36, kb: 0, pull: 74, color: 0xf6f0ff, tether: 1 }) }), P(20, 'cast1')] },

@@ -12,7 +12,7 @@
   P.enter = function () {
     var o = this.o, c1 = Roster.get(o.p1), c2 = Roster.get(o.p2), me = this;
     this.mode = o.mode; this.train = o.mode === 'train'; this.round = 1; this.wins = [0, 0]; this.need = FS.get('wins');
-    this.stage = Stage.make(o.stage || 0); this.fx = new FxSys(); this.projs = []; this.hitStop = 0; this.freeze = 0; this.slow = 0; this.shake = 0; this.t = 0; this.paused = null; this.ult = null; this.result = null;
+    this.stage = Stage.make(o.stage || 0); FX.preloadVoice && (FX.preloadVoice(c1.id), FX.preloadVoice(c2.id)); this.fx = new FxSys(); this.projs = []; this.hitStop = 0; this.freeze = 0; this.slow = 0; this.shake = 0; this.zoom = 0; this.impact = null; this.t = 0; this.paused = null; this.ult = null; this.result = null;
     this.combos = [{ n: 0, dmg: 0, t: 0 }, { n: 0, dmg: 0, t: 0 }]; this.lastDmg = 0; this.maxCombo = 0; this.hist = []; this.dummyMode = 0; this.infMeter = false; this.flash = 0; this.koT = 0;
     FI.setMode(o.mode === 'vs2p' ? 2 : 1); FTouch.show(o.mode === 'vs2p' ? '2p' : '1p'); FI.reset();
     var f1 = new Fighter(c1, 0, 'h0'), f2 = new Fighter(c2, 1, o.mode === 'vs2p' ? 'h1' : this.train ? 'dummy' : 'ai');
@@ -45,18 +45,32 @@
   P.onHit = function (A, B, res, h, x, y) {
     if (res.counter) return;
     var sx = x, sy = GROUND - y, lvl = h.dmg >= 75 ? 'h' : h.dmg >= 38 ? 'm' : 'l', sh = FS.get('shake');
-    if (res.blocked) { this.fx.block(sx, sy); FX.play('block'); this.hitStop = Math.max(this.hitStop, 2); this.shake = Math.max(this.shake, 1.5 * sh); if (res.dmg) this.fx.text(B.x, GROUND - 180, res.dmg, '#9fd8ff', 18); }
-    else {
-      this.fx.spark(sx, sy, lvl, A.ch.color); FX.play(h.sfx || 'hit_m'); this.hitStop = Math.max(this.hitStop, h.stop || 4); this.shake = Math.max(this.shake, (lvl === 'h' ? 9 : lvl === 'm' ? 5 : 2.5) * sh);
-      if (res.launch) this.fx.dust(B.x, GROUND, 4); if (res.ko) { this.shake = 14 * sh; this.hitStop = 14; }
+    if (res.blocked) {
+      this.fx.block(sx, sy); FX.play(h.ex ? 'block_ex' : 'block'); this.hitStop = Math.max(this.hitStop, h.ex ? 6 : 3); this.shake = Math.max(this.shake, (h.ex ? 3 : 1.5) * sh); if (res.dmg) this.fx.text(B.x, GROUND - 180, res.dmg, '#9fd8ff', 18);
+      if (B.gg > 60 && !res.crush) this.fx.text(B.x, GROUND - 205, '小心！', '#ff9a4a', 16);
+    } else {
+      var st = lvl === 'h' ? 9 : lvl === 'm' ? 6 : 4; if (h.stop && h.stop > st) st = h.stop; if (res.chit) st += 3; if (h.ex) st += 2;
+      this.fx.spark(sx, sy, lvl, A.ch.color); FX.play(h.sfx || (lvl === 'h' ? 'hit_h' : lvl === 'm' ? 'hit_m' : 'hit_l')); this.hitStop = Math.max(this.hitStop, st); this.shake = Math.max(this.shake, (lvl === 'h' ? 9 : lvl === 'm' ? 5 : 2.5) * sh * (h.ex ? 1.3 : 1));
+      this.zoom = Math.max(this.zoom, (lvl === 'h' ? .035 : lvl === 'm' ? .018 : .008) * (h.ex ? 1.5 : 1)); this.impact = { x: sx - this.camX * 0 , y: sy, t: 8, big: lvl === 'h' || h.ex || res.chit, face: A.face };
+      if (res.launch) this.fx.dust(B.x, GROUND, 4);
+      if (res.chit) { this.fx.text(B.x, GROUND - 235, 'COUNTER', '#ff8a3a', 22); FX.play('counter'); }
+      if (res.ko) { this.shake = 14 * sh; this.hitStop = 16; this.zoom = .09; this.flash = Math.max(this.flash, 5); }
       this.lastDmg = res.dmg; if (this.train || res.dmg >= 60) this.fx.text(B.x, GROUND - 190, res.dmg, '#ffe27a', this.train ? 22 : 26);
       this.noteCombo(A);
       if (A.meter >= 100 && !A._full) { A._full = true; FX.play('meter'); } else if (A.meter < 100) A._full = false;
     }
   };
+  P.crushFx = function (f, att) {
+    this.hitStop = 16; this.shake = Math.max(this.shake, 10 * FS.get('shake')); this.zoom = Math.max(this.zoom, .05); this.flash = Math.max(this.flash, 4);
+    FX.play('crush'); this.fx.ring(f.x, GROUND - 100, 0x9fd8ff, 120); this.fx.ring(f.x, GROUND - 100, 0xffffff, 70); this.fx.text(f.x, GROUND - 230, '防禦崩潰！', '#ffd24a', 34); this.fx.spark(f.x, GROUND - 100, 'h', 0x9fd8ff);
+  };
+  P.onExStart = function (f, mv) {
+    FX.play('ex_go'); this.fx.ring(f.x, GROUND - f.y - 90, 0xc88aff, 110); this.fx.ring(f.x, GROUND - f.y - 90, 0xffffff, 60); this.fx.text(f.x, GROUND - f.y - 215, 'EX', '#d8a8ff', 30); this.hitStop = Math.max(this.hitStop, 7); this.zoom = Math.max(this.zoom, .03); this.shake = Math.max(this.shake, 3 * FS.get('shake'));
+    FX.grunt(f.ch.tts.pitch * 1.08, 'ult', f.id);
+  };
   P.noteCombo = function (A) { var i = this.fs.indexOf(A), c = this.combos[i]; c.n = A.combo; c.dmg = A.comboDmg; c.t = 90; if (A.combo > this.maxCombo) this.maxCombo = A.combo; };
   P.onUltStart = function (f, mv) {
-    this.freeze = 56; this.ult = { f: f, mv: mv, t: 0 }; FX.play('ult_go'); FX.say(f.ch.lines.ult, f.ch.tts); FX.grunt(f.ch.tts.pitch, 'ult'); this.flash = 10;
+    this.freeze = 56; this.ult = { f: f, mv: mv, t: 0 }; FX.play('ult_go'); FX.say(f.ch.lines.ult, f.ch.tts, false, f.id + '/ult'); FX.grunt(f.ch.tts.pitch, 'ult', f.id); this.flash = 10;
   };
   P.ultFx = function (f, tag) { f.ultTag = tag; f.ultT = 0; };
 
@@ -75,7 +89,7 @@
     this.t++; G.G_TIME = this.t / 60;
     if (this.paused || this.phase === 'matchEnd') { this.fx.update(); if (this.phase === 'matchEnd') this.overT++; return; }
     if (this.freeze > 0) { this.freeze--; this.ult && this.ult.t++; return; }
-    if (this.hitStop > 0) { this.hitStop--; this.shake *= .9; this.fx.update(); return; }
+    if (this.hitStop > 0) { this.hitStop--; this.shake *= .9; this.zoom *= .95; if (this.impact && this.impact.t > 0 && !(this.hitStop & 1)) this.impact.t--; this.fx.update(); return; }
     if (this.slow > 0) { this.slow--; if (this.t & 1) { this.fx.update(); return; } }
     this.pt++;
     var fs = this.fs, i, f, inp = [];
@@ -90,7 +104,7 @@
     if (this.phase === 'fight' || this.phase === 'ko' || this.phase === 'roundEnd' || this.phase === 'intro') Combat.resolve(this, fs);
     var ps = this.projs; for (i = ps.length - 1; i >= 0; i--) { ps[i].update(this); if (ps[i].dead) ps.splice(i, 1); }
     this.fx.update(); this.fxEmit();
-    this.camera(); this.shake *= .86; if (this.shake < .2) this.shake = 0; if (this.flash > 0) this.flash--;
+    this.camera(); this.zoom *= .86; if (this.zoom < .001) this.zoom = 0; if (this.impact && --this.impact.t <= 0) this.impact = null; this.shake *= .86; if (this.shake < .2) this.shake = 0; if (this.flash > 0) this.flash--;
     // 連段計數
     for (i = 0; i < 2; i++) { var B = fs[1 - i], A = fs[i], cb = this.combos[i]; if (!(B.state === 'hurt' || B.state === 'launched' || B.state === 'grabbed' || B.state === 'down')) { A.combo = 0; A.comboDmg = 0; if (cb.t > 0) cb.t--; } }
     for (i = 0; i < 2; i++) { f = fs[i]; f.hpLag += (f.hp - f.hpLag) * (f.hpLag > f.hp ? .04 : 1); if (f.hpLag < f.hp) f.hpLag = f.hp; }
@@ -101,18 +115,18 @@
   };
   P.updateIntro = function () {
     var t = this.pt, fs = this.fs;
-    if (t === 8 && this.round === 1 && !this.train) { FX.say(fs[0].ch.lines.intro, fs[0].ch.tts); }
+    if (t === 8 && this.round === 1 && !this.train) { FX.say(fs[0].ch.lines.intro, fs[0].ch.tts, false, fs[0].id + '/intro'); }
     if (t === 24) { FX.play('drum'); }
-    if (t === 62 && this.round === 1 && !this.train) FX.say(fs[1].ch.lines.intro, fs[1].ch.tts, true);
+    if (t === 62 && this.round === 1 && !this.train) FX.say(fs[1].ch.lines.intro, fs[1].ch.tts, true, fs[1].id + '/intro');
     if (t === 118) { FX.play('fight'); }
     if (t >= 118 + 14 || (this.train && t > 30)) { fs[0].state = fs[1].state = 'idle'; fs[0].expr = fs[1].expr = 'n'; this.phase = 'fight'; FI.clearLatch(); }
   };
   P.updateKo = function () {
-    this.koT++; if (this.koT === 150) { var w = this.winner; if (w >= 0) { var wf = this.fs[w]; wf.state = 'win'; wf.pt = 0; wf.vx = 0; if (this.wins[w] >= this.need) FX.say(wf.ch.lines.win, wf.ch.tts); else FX.play('crowd'); FX.play('jingle'); } this.phase = 'roundEnd'; this.overT = 0; }
+    this.koT++; if (this.koT === 150) { var w = this.winner; if (w >= 0) { var wf = this.fs[w]; wf.state = 'win'; wf.pt = 0; wf.vx = 0; if (this.wins[w] >= this.need) FX.say(wf.ch.lines.win, wf.ch.tts, false, wf.id + '/win'); else FX.play('crowd'); FX.play('jingle'); } this.phase = 'roundEnd'; this.overT = 0; }
   };
   P.endRound = function (why) {
     var fs = this.fs, w = -1; this.phase = 'ko'; this.koT = 0; this.why = why;
-    if (why === 'ko') { var d0 = fs[0].dead, d1 = fs[1].dead; w = d0 && d1 ? -1 : d0 ? 1 : 0; this.slow = 100; FX.play('ko'); FX.grunt(fs[w === 0 ? 1 : 0].ch.tts.pitch, 'ko'); this.shake = 12; if (!this.train && (w >= 0 ? fs[1 - w] : fs[0]).ch.lines.ko && w >= 0 && this.wins[w] + 1 >= this.need) FX.say(fs[1 - w].ch.lines.ko, fs[1 - w].ch.tts); }
+    if (why === 'ko') { var d0 = fs[0].dead, d1 = fs[1].dead; w = d0 && d1 ? -1 : d0 ? 1 : 0; this.slow = 100; FX.play('ko'); FX.grunt(fs[w === 0 ? 1 : 0].ch.tts.pitch, 'ko', fs[w === 0 ? 1 : 0].id); this.shake = 12; if (!this.train && (w >= 0 ? fs[1 - w] : fs[0]).ch.lines.ko && w >= 0 && this.wins[w] + 1 >= this.need) FX.say(fs[1 - w].ch.lines.ko, fs[1 - w].ch.tts, false, fs[1 - w].id + '/ko'); }
     else { var p0 = fs[0].hp / fs[0].maxHp, p1 = fs[1].hp / fs[1].maxHp; w = Math.abs(p0 - p1) < .001 ? -1 : p0 > p1 ? 0 : 1; FX.play('gong'); }
     this.winner = w; if (w >= 0) this.wins[w]++; else { this.wins[0]++; this.wins[1]++; }
     for (var i = 0; i < 2; i++) { if (i !== w && !fs[i].dead && w >= 0) { fs[i].state = 'lose'; fs[i].pt = 0; } if (w < 0 && !fs[i].dead) { fs[i].state = 'lose'; } }
@@ -211,13 +225,14 @@
   P.draw = function (c) {
     var t = this.t / 60, sx = 0, sy = 0, fs = this.fs, i, pen = new CanvasPen(c);
     if (this.shake > 0) { sx = (Math.random() - .5) * this.shake * 2; sy = (Math.random() - .5) * this.shake * 2; }
-    c.save(); c.translate(sx, sy); G.G_TIME = t;
+    c.save(); c.translate(sx, sy); if (this.zoom > 0) { var zk = 1 + this.zoom, zx = this.impact ? this.impact.x - this.camX : W / 2; c.translate(zx, GROUND - 100); c.scale(zk, zk); c.translate(-zx, -(GROUND - 100)); } G.G_TIME = t;
     this.stage.draw(c, this.camX, t);
     var order = fs.slice(); if (fs[1].state === 'attack' && fs[0].state !== 'attack') order.reverse(); else if (fs[0].state === 'attack') order = [fs[1], fs[0]];
     for (i = 0; i < 2; i++) this.drawShadow(c, order[i]);
     for (i = 0; i < 2; i++) this.drawFighter(c, pen, order[i]);
     this.drawProjs(c, pen);
     this.fx.draw(c, this.camX); this.fx.drawTexts(c, this.camX);
+    if (this.impact) this.drawImpact(c);
     c.restore();
     if (this.flash > 0) { c.fillStyle = 'rgba(255,255,255,' + this.flash / 12 + ')'; c.fillRect(0, 0, W, H); }
     if (this.freeze > 0 && this.ult) this.drawUlt(c, pen);
@@ -226,6 +241,12 @@
     else if (this.phase === 'ko' || this.phase === 'roundEnd') this.drawKo(c);
     if (this.phase === 'matchEnd') this.drawEnd(c);
     if (this.paused) this.drawPause(c);
+  };
+  P.drawImpact = function (c) {
+    var im = this.impact, n = im.big ? 14 : 9, k = 1 - im.t / 8, i, a, r0 = 18 + k * 30, r1 = r0 + (im.big ? 90 : 52) * (1 - k * .5);
+    c.save(); c.translate(im.x - this.camX, im.y); c.strokeStyle = 'rgba(255,255,255,' + (.85 * (1 - k)) + ')'; c.lineCap = 'round';
+    for (i = 0; i < n; i++) { a = i / n * 6.283 + (i % 2) * .12; c.lineWidth = im.big ? 4 : 2.5; c.beginPath(); c.moveTo(Math.cos(a) * r0, Math.sin(a) * r0); c.lineTo(Math.cos(a) * r1, Math.sin(a) * r1); c.stroke(); }
+    c.restore();
   };
   P.drawShadow = function (c, f) {
     var k = clamp(1 - f.y / 260, .25, 1), x = f.x - this.camX; c.fillStyle = 'rgba(0,0,0,' + .32 * k + ')'; c.beginPath(); c.ellipse(x, GROUND + 2, 40 * f.sc * k, 8 * k, 0, 0, 6.3); c.fill();
@@ -236,6 +257,8 @@
     f.draw(pen, x, GROUND);
     if (f.maskFlash > 0) { c.strokeStyle = 'rgba(255,200,80,' + f.maskFlash / 30 + ')'; c.lineWidth = 4; c.beginPath(); c.arc(x, GROUND - f.y - 90, 60 + (30 - f.maskFlash) * 2, 0, 6.3); c.stroke(); }
     if (f.buff) { c.fillStyle = 'rgba(255,170,60,.9)'; c.font = '900 14px ' + UI.FONT; c.textAlign = 'center'; c.fillText('增傷', x, GROUND - f.y - 200 * f.sc); }
+    if (f.crushed && f.state === 'hurt') { c.save(); c.fillStyle = '#ffe27a'; c.font = '900 22px ' + UI.FONT; c.textAlign = 'center'; for (var q = 0; q < 3; q++) { var an = this.t * .12 + q * 2.094; c.fillText('★', x + Math.cos(an) * 34, GROUND - f.y - 190 * f.sc + Math.sin(an) * 9); } c.restore(); }
+    if (f.exFlash > 0) { c.save(); c.globalCompositeOperation = 'lighter'; var ek = f.exFlash / 24, g2 = c.createRadialGradient(x, GROUND - f.y - 90, 10, x, GROUND - f.y - 90, 110); g2.addColorStop(0, 'rgba(200,140,255,' + ek * .55 + ')'); g2.addColorStop(1, 'rgba(200,140,255,0)'); c.fillStyle = g2; c.fillRect(x - 120, GROUND - f.y - 210, 240, 240); c.restore(); }
     if (f.ultTag) this.drawUltFront(c, f, x);
   };
   P.drawProjs = function (c, pen) {
@@ -301,6 +324,10 @@
       var mw = 220, mx = i === 0 ? bx + 86 : bx + bw - 86 - mw, my = by + 64, mk = f.meter / 100; UI.bar(c, mx, my, mw, 12, mk, mk >= 1 ? '#ffd24a' : '#4ab8ff');
       c.strokeStyle = mk >= 1 ? '#fff' : 'rgba(255,255,255,.4)'; c.lineWidth = 2; c.strokeRect(mx, my, mw, 12);
       if (mk >= 1) { var pu = .6 + .4 * Math.sin(this.t * .25); UI.text(c, 'READY', mx + mw / 2, my + 6.5, 11, 'rgba(60,20,0,' + (.6 + pu * .4) + ')', 'center', { weight: 900 }); } else UI.text(c, '絕', i === 0 ? mx - 14 : mx + mw + 14, my + 6, 16, '#9ac8ff', 'center', { weight: 900 });
+      var gx = i === 0 ? bx + bw - 176 : bx + 26, gk = Math.min(1, f.gg / 100); c.fillStyle = 'rgba(8,8,20,.7)'; c.fillRect(gx, by + 38, 150, 6); c.fillStyle = f.crushed ? '#ff4a3a' : gk > .7 ? '#ff8a3a' : '#7ad0ff'; if (i === 0) c.fillRect(gx, by + 38, 150 * gk, 6); else c.fillRect(gx + 150 * (1 - gk), by + 38, 150 * gk, 6); c.strokeStyle = 'rgba(255,255,255,.4)'; c.lineWidth = 1; c.strokeRect(gx, by + 38, 150, 6);
+      if (gk > .7 && this.t % 16 < 8) UI.text(c, '防禦危險', i === 0 ? gx - 6 : gx + 156, by + 41.5, 11, '#ff8a3a', i === 0 ? 'right' : 'left', { weight: 900 });
+      var tk = [30, 60, 90]; c.fillStyle = 'rgba(255,255,255,.55)'; for (var tq = 0; tq < 2; tq++) c.fillRect(mx + mw * (tq + 1) / 3 - .5, my, 1.5, 12);
+      if (f.meter >= 30 && f.meter < 100 && this.t % 40 < 28) UI.text(c, 'EX', i === 0 ? mx + mw + 14 : mx - 14, my + 6, 13, '#d8a8ff', 'center', { weight: 900 });
       var cb = this.combos[i]; if (cb.n >= 2 && cb.t > 0) { var al = Math.min(1, cb.t / 30), cx = i === 0 ? 24 : W - 24, sc = 1 + Math.max(0, cb.t - 82) * .05; c.save(); c.globalAlpha = al; UI.text(c, cb.n + '', cx + (i === 0 ? 0 : 0), 190, 64 * sc, '#ffd24a', i === 0 ? 'left' : 'right', { weight: 900, stroke: '#2a0d08', sw: 7 }); UI.text(c, '連擊', cx, 238, 24, '#fff', i === 0 ? 'left' : 'right', { weight: 900, stroke: '#2a0d08' }); UI.text(c, cb.dmg + ' 傷害', cx, 266, 20, '#ffe8a0', i === 0 ? 'left' : 'right', { weight: 800, stroke: '#2a0d08' }); c.restore(); }
     }
     var tm = this.train ? '∞' : Math.max(0, Math.ceil(this.timer / 60)) + ''; c.beginPath(); c.arc(W / 2, 46, 34, 0, 6.3); c.fillStyle = 'rgba(8,8,20,.85)'; c.fill(); c.lineWidth = 4; c.strokeStyle = this.timer > 0 && this.timer < 600 && !this.train && (this.t % 30 < 15) ? '#ff6a4a' : '#e8b84a'; c.stroke();

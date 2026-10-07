@@ -22,17 +22,30 @@
     MAP: MAP,
     has: function (id) { return !!(SET[id] && SET[id].ok); },
     portrait: function (id) { return SET[id] && SET[id].portrait && SET[id].portrait.complete && SET[id].portrait.naturalWidth ? SET[id].portrait : null; },
+    /* 只先讀頭像（很小）；整張圖集（幾 MB）等到真的要用才 ensure() 載入。 */
     load: function (base) {
+      this.base = base;
       Object.keys(MAP).forEach(function (id) {
-        var s = SET[id] = { ok: false }, x = new G.XMLHttpRequest();
-        try {
-          x.open('GET', base + id + '.json'); x.onload = function () {
-            try { var j = JSON.parse(x.responseText), img = new G.Image(); img.onload = function () { s.img = img; s.f = j.frames; s.ppu = j.ppu; s.ok = true; }; img.src = base + id + '.png'; } catch (e) {}
-          }; x.send();
-          var p = new G.Image(); p.onload = function () { s.portrait = p; }; p.src = base + id + '_portrait.jpg';
-        } catch (e) {}
+        var s = SET[id] = { ok: false, st: 0, cbs: [] };
+        try { var p = new G.Image(); p.onload = function () { s.portrait = p; }; p.src = base + id + '_portrait.jpg'; } catch (e) {}
       });
     },
+    /* 沒有圖集的角色（仍用程式繪製）直接視為就緒。cb 在載入完成或失敗時呼叫。 */
+    ensure: function (id, cb) {
+      var s = SET[id]; cb = cb || function () {};
+      if (!s || s.ok || s.st === 3) { cb(); return; }
+      s.cbs.push(cb); if (s.st === 1) return; s.st = 1;
+      var base = this.base, x = new G.XMLHttpRequest(), fin = function (good) { s.st = good ? 2 : 3; var q = s.cbs.splice(0); q.forEach(function (f) { try { f(); } catch (e) {} }); };
+      try {
+        x.open('GET', base + id + '.json'); x.onerror = function () { fin(false); };
+        x.onload = function () {
+          try { var j = JSON.parse(x.responseText), img = new G.Image(); img.onload = function () { s.img = img; s.f = j.frames; s.ppu = j.ppu; s.ok = true; fin(true); }; img.onerror = function () { fin(false); }; img.src = base + id + '.png'; } catch (e) { fin(false); }
+        }; x.send();
+      } catch (e) { fin(false); }
+    },
+    /* 還在載入中的圖集數量（載入畫面用） */
+    pending: function () { var n = 0; for (var k in SET) if (SET[k].st === 1) n++; return n; },
+    ready: function (id) { var s = SET[id]; return !s || s.ok || s.st === 3; },
     /* 姿勢名 → 圖格名；n 為輪播索引（走路 / 待機呼吸用） */
     frame: function (id, pose, n) {
       var m = MAP[id], v = m && (m[pose] || m.fallback); if (v instanceof Array) v = v[((n | 0) % v.length + v.length) % v.length]; return v;

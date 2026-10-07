@@ -138,7 +138,7 @@
   var C = [];
   function add(c) { C.push(c); return c; }
   add({ id: 'long', name: '阿龍', full: '林天龍', title: '廟口武者', place: '艋舺廟口', age: 24, tts: { pitch: .9, rate: 1.2 }, color: 0xd8352a,
-    bio: '艋舺陣頭長大的少年，拳頭比廟口的鑼鼓還響。均衡型。', stats: { pow: 4, spd: 3, rng: 3, def: 3 }, hp: 1000, walk: 3.2, back: 2.4, jump: 17, scale: 1,
+    bio: '艋舺陣頭長大的少年，拳頭比廟口的鑼鼓還響。均衡型。', stats: { pow: 4, spd: 3, rng: 3, def: 3 }, hp: 1040, walk: 3.2, back: 2.4, jump: 17, dmg: 1.05, scale: 1,
     look: { B: B({}), skin: 0xe4a678, hair: 0x14101c, hairStyle: 'spiky', top: 0xd8352a, sleeve: 'none', pants: 0xf2e8d6, belt: 0x1a1420, shoe: 0x9a6a3a, wrist: 0x1a1420, deco: ['flag', 'headband'], collar: 0xf2c14e },
     lines: { intro: '來啊！廟口的拳頭最大粒！', ult: '龍神附體！九龍破！', win: '這樣就倒喔？', ko: '廟口……不會輸……' } });
   add({ id: 'cai', name: '阿財', full: '張阿財', title: '夜市老闆', place: '士林夜市', age: 38, tts: { pitch: .7, rate: 1.1 }, color: 0x3f6f8f,
@@ -150,12 +150,12 @@
     look: { B: B({ tw: 28, lw: 12.5, Lt: 54 }), skin: 0xefc29c, hair: 0x14101c, hairStyle: 'short', top: 0xff9c1a, sleeve: 'long', pants: 0x2e3340, shoe: 0xf4f4f4, deco: ['deliverybox', 'helmet', 'reflect'], collar: 0xffe0a0 },
     lines: { intro: '五分鐘內送到你的醫藥費！', ult: '準時送達，不收小費！', win: '差評？我給你好評啦！', ko: '遲到了……' } });
   add({ id: 'wu', name: '吳師父', full: '吳守仁', title: '太極師父', place: '大安森林公園', age: 58, tts: { pitch: .8, rate: 1.0 }, color: 0x3a9a6a,
-    bio: '晨練的老師傅，四兩撥千斤。反擊型，慢熱但穩。', stats: { pow: 3, spd: 2, rng: 2, def: 5 }, hp: 1050, walk: 2.7, back: 2.2, jump: 15.5, scale: .93,
+    bio: '晨練的老師傅，四兩撥千斤。反擊型，慢熱但穩。', stats: { pow: 3, spd: 2, rng: 2, def: 5 }, hp: 1120, walk: 2.7, back: 2.2, jump: 15.5, dmg: 1.15, scale: .93,
     look: { B: B({ hr: 19, tw: 34, Lt: 52 }), skin: 0xe2b084, hair: 0xe6e6ea, brow: 0xe6e6ea, hairStyle: 'short', top: 0xf6f4ee, sleeve: 'long', pants: 0xf0eee6, belt: 0x3a3a3a, shoe: 0x22222a, deco: ['thermos'], collar: 0xe0dcd0,
       facial: function (pen, J) { var c = J.head, r = J.hr, f = J.f; pen.poly([c.x + f * r * .4, c.y + r * .7, c.x + f * r * .75, c.y + r * .72, c.x + f * r * .56, c.y + r * 1.5], 0xf0f0f4); } },
     lines: { intro: '年輕人，火氣不要這麼大。', ult: '太極歸一，以柔克剛。', win: '喝口茶，再來。', ko: '老了……不中用了……' } });
   add({ id: 'yu', name: '小瑜', full: '劉小瑜', title: '珍奶店員', place: '東區', age: 19, tts: { pitch: 1.5, rate: 1.25 }, color: 0xff8fb4,
-    bio: '手搖飲料店的打工妹，珍珠可以當子彈。遠程壓制型。', stats: { pow: 2, spd: 4, rng: 5, def: 2 }, hp: 940, walk: 3.3, back: 2.6, jump: 17.5, scale: .95,
+    bio: '手搖飲料店的打工妹，珍珠可以當子彈。遠程壓制型。', stats: { pow: 2, spd: 4, rng: 5, def: 2 }, hp: 880, walk: 3.3, back: 2.6, jump: 17.5, dmg: .92, scale: .95,
     look: { B: B({ tw: 27, lw: 12, aw: 10, Lt: 52, hr: 19 }), skin: 0xf6cba6, hair: 0x6a3a22, hairStyle: 'pony', tie: 0xff7aa8, top: 0xfaf0f4, sleeve: 'short', pants: 0x3a64a8, shoe: 0xf6f6f6, apron: 0xc8905a, deco: ['apron', 'cup', 'straw'], blush: true },
     lines: { intro: '三分糖，七分狠！', ult: '滿杯暴擊，珍珠管夠！', win: '甜度冰塊，自己選！', ko: '珍珠……灑了……' } });
   add({ id: 'feng', name: '小鳳', full: '陳小鳳', title: '歌仔戲名伶', place: '大稻埕', age: 33, tts: { pitch: 1.4, rate: 1.0 }, color: 0x7a3ac0,
@@ -167,11 +167,11 @@
     look: { B: B({ tw: 27, lw: 12, Lt: 54, Lth: 45, Lsh: 45 }), skin: 0xf2c6a2, hair: 0x14101c, hairStyle: 'bob', top: 0x24304e, sleeve: 'long', pants: 0x24304e, legSkin: true, shoe: 0xd8202e, heel: true, collar: 0xffffff, deco: ['briefcase', 'headset'], skirt: pencilSkirt, blush: true },
     lines: { intro: '下班前搞定你。', ult: '加班地獄，開始！', win: 'KPI 達成！', ko: '我要……請假……' } });
   add({ id: 'die', name: '小蝶', full: '蘇小蝶', title: '街舞少女', place: '西門町', age: 20, tts: { pitch: 1.6, rate: 1.35 }, color: 0x3af0d0,
-    bio: '西門町的街舞少女，倒立旋轉都是日常。低姿態旋轉型。', stats: { pow: 3, spd: 5, rng: 2, def: 1 }, hp: 900, walk: 3.7, back: 3.0, jump: 19, scale: .94,
+    bio: '西門町的街舞少女，倒立旋轉都是日常。低姿態旋轉型。', stats: { pow: 3, spd: 5, rng: 2, def: 1 }, hp: 1000, walk: 3.7, back: 3.0, jump: 19, dmg: 1.2, scale: .94,
     look: { B: B({ tw: 27, lw: 13, aw: 10.5, Lt: 50, hr: 19 }), skin: 0xe9b894, hair: 0x14101c, hairStyle: 'short', top: 0xf4ee3a, sleeve: 'long', pants: 0x2a9d8f, shoe: 0xf4f4f4, deco: ['snapback', 'hoodieStripe'], blush: true, wrist: 0xff4fa0 },
     lines: { intro: 'Battle 開始！別眨眼喔。', ult: '霓虹連環，閃瞎你！', win: '這招叫……閃瞎你。', ko: '舞台……暗了……' } });
   var BOSS = { id: 'boss', name: '西裝男', full: '中分頭西裝男', title: '總統府的最後關主', place: '總統府', age: 52, tts: { pitch: .8, rate: 1.0 }, color: 0x2a8a4a, boss: true,
-    bio: '手持綠色公文夾的神祕西裝男，總統府前的最終關主。', stats: { pow: 5, spd: 3, rng: 4, def: 4 }, hp: 1300, walk: 2.9, back: 2.3, jump: 16, scale: 1.04, dmg: 1.1,
+    bio: '手持綠色公文夾的神祕西裝男，總統府前的最終關主。', stats: { pow: 5, spd: 3, rng: 4, def: 4 }, hp: 1250, walk: 2.9, back: 2.3, jump: 16, scale: 1.04, dmg: 1.05,
     look: { B: B({ tw: 36, aw: 12, lw: 14, hr: 21, Lt: 58, Lth: 46, Lsh: 46 }), skin: 0xeac29c, hair: 0x14101c, hairStyle: 'short', top: 0x23252d, sleeve: 'long', pants: 0x23252d, shoe: 0x0c0c10, collar: 0xf4f4f4, deco: ['tie', 'folder'] },
     lines: { intro: '各位，請聽我說。', ult: '政令宣導，全面落實！', win: '本案，圓滿結案。', ko: '會議……散會……' } };
   var Roster = { chars: C, boss: BOSS, all: C.concat([BOSS]), byId: {} };

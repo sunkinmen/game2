@@ -3,8 +3,8 @@
 (function (G) {
   'use strict';
   var D = G.document, FI = G.FightInput, FS = G.FSettings;
-  var TINT = { p: '255,96,84', k: '96,160,255', j: '255,214,80', s1: '120,230,150', s2: '120,230,200', s3: '255,170,60' };
-  var LAB = { p: '手', k: '腳', j: '跳' }, DEFN = { s1: '小招A', s2: '小招B', s3: '大招' };
+  var TINT = { p: '255,96,84', k: '96,160,255', j: '255,214,80', s1: '120,230,150', s2: '120,230,200', s3: '255,170,60', ex: '190,120,255' };
+  var LAB = { p: '手', k: '腳', j: '跳', ex: 'EX' }, DEFN = { s1: '小招A', s2: '小招B', s3: '大招' };
   var T = {
     cv: null, cx: null, dpr: 1, dirty: true, mode: null, _raf: 0, _probe: null, _w: 0, _h: 0, btn: [], pads: [],
     init: function () {
@@ -35,7 +35,7 @@
         var addPad = function (pl, cx) { pads.push({ pl: pl, x: cx, y: vh - Bm - padR, r: padR }); };
         var cluster = function (pl, ax, sg) {                           // sg=-1：往左展開（叢集在右側）
           var o = function (a, ox, oy, rr) { btn.push({ pl: pl, a: a, x: ax + sg * ox, y: y0 + oy * 1, r: rr }); };
-          o('k', 0, 0, r); o('p', u, -r * .5, r); o('j', 0, -u, r);
+          o('k', 0, 0, r); o('p', u, -r * .5, r); o('j', 0, -u, r); o('ex', u * 1.9, r * .05, Dm * .4);
           if (easy) { var s = Dm * .4; o('s1', u * 1.75, -u * 1.05, s); o('s2', u * 1.1, -u * 1.75, s); o('s3', 0, -u * 2.0, s * 1.1); }
         };
         if (!two) {
@@ -72,10 +72,10 @@
         if (this.mode === '2p') { c.font = 'bold 13px sans-serif'; c.fillStyle = p.pl ? 'rgba(255,120,110,.9)' : 'rgba(120,180,255,.9)'; c.fillText(p.pl ? '2P' : '1P', p.x, p.y - p.r - 10); }
       }
       for (i = 0; i < this.btn.length; i++) {
-        var b = this.btn[i], on = FI.touchDown(b.pl, b.a), rr = b.r * (on ? .92 : 1), al = Math.min(1, A + (on ? .3 : .08)), sm = b.a.length > 1;
+        var b = this.btn[i], on = FI.touchDown(b.pl, b.a), rr = b.r * (on ? .92 : 1), al = Math.min(1, A + (on ? .3 : .08)), sm = b.a.length > 1 && b.a !== 'ex';
         orb(b.x, b.y, rr, TINT[b.a], on, al);
         c.lineWidth = 3; c.strokeStyle = 'rgba(10,12,30,' + (al * .85).toFixed(3) + ')'; c.fillStyle = 'rgba(255,255,255,' + Math.min(1, al + .3).toFixed(3) + ')';
-        if (!sm) { c.font = '900 ' + Math.round(rr * .74) + 'px "Noto Sans TC",system-ui,sans-serif'; c.strokeText(LAB[b.a], b.x, b.y + 1); c.fillText(LAB[b.a], b.x, b.y + 1); }
+        if (!sm) { c.font = '900 ' + Math.round(rr * (b.a === 'ex' ? .62 : .74)) + 'px "Noto Sans TC",system-ui,sans-serif'; c.strokeText(LAB[b.a], b.x, b.y + 1); c.fillText(LAB[b.a], b.x, b.y + 1); }
         else {
           var nm = (FI.labels[b.pl] || [])[+b.a[1] - 1] || DEFN[b.a], fs = Math.max(9, Math.round(rr * (nm.length > 4 ? .36 : .42)));
           c.font = '800 ' + fs + 'px "Noto Sans TC",system-ui,sans-serif';

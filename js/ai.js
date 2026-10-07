@@ -3,17 +3,23 @@
  * 行為依距離分區（遠 / 中 / 近）與角色射程傾向（stats.rng）決定；以「計畫佇列」逐幀播放按鍵。 */
 (function (G) {
   'use strict';
-  var KEYS = ['l', 'r', 'u', 'd', 'p', 'k', 'j', 's1', 's2', 's3'];
+  var KEYS = ['l', 'r', 'u', 'd', 'p', 'k', 'j', 's1', 's2', 's3', 'ex'];
   var LV = [{ rt: 22, block: .22, aggr: .5, combo: .25, ult: .25, jump: .08 }, { rt: 12, block: .5, aggr: .75, combo: .55, ult: .55, jump: .14 }, { rt: 5, block: .78, aggr: 1, combo: .85, ult: .85, jump: .2 }];
   function blank() { var o = {}, i; for (i = 0; i < KEYS.length; i++) { o[KEYS[i]] = false; o['x' + KEYS[i]] = false; } return o; }
   function AI(level, fighter) { this.lv = LV[Math.max(0, Math.min(2, level | 0))]; this.f = fighter; this.plan = []; this.cool = 20; this.react = -1; this.seenAtk = null; this.sp = 0; }
   var AP = AI.prototype;
   AP.step = function (keys, n, tap) { this.plan.push({ n: n, keys: keys, tap: tap }); return this; };
   AP.rnd = function () { return Math.random(); };
+  AP.spk = function (me, n) { var ex = me.meter >= 30 && me.meter < 100 && this.rnd() < this.lv.ult * .55; return ex ? ['s' + n, 'ex'] : ['s' + n]; };
   AP.think = function (me, opp, scene) {
     var out = blank(), L = this.lv, dx = opp.x - me.x, dist = Math.abs(dx), tow = dx > 0 ? 'r' : 'l', away = dx > 0 ? 'l' : 'r', k, st = me.state;
     if (this.cool > 0) this.cool--;
     if (this.sp > 0) this.sp--;
+    // 移動類計畫遇到威脅時中斷，改走防禦反應
+    if (this.plan.length && !this.plan[0].tap && (st === 'idle' || st === 'walk' || st === 'block' || st === 'crouch') && this.rnd() < .5) {
+      var pk = this.plan[0].keys, mv0 = true, q; for (q = 0; q < pk.length; q++) if (pk[q] === 'p' || pk[q] === 'k' || pk[q][0] === 's') mv0 = false;
+      if (mv0 && pk.indexOf('away') < 0 && pk.indexOf(away) < 0 && this.threat(me, opp, scene, dist)) this.plan.length = 0;
+    }
     // 播放計畫
     if (this.plan.length) {
       var s = this.plan[0], arr = s.keys;
@@ -33,7 +39,9 @@
       if (this.react < 0) this.react = Math.round(L.rt * (.6 + this.rnd() * .8));
       if (--this.react <= 0) {
         this.react = -1;
-        if (this.rnd() < L.block) { var cr = thr.lvl === 'l'; this.step(cr ? [away, 'd'] : [away], thr.hold, false); return out; }
+        var cm = G.Moves.special(me.id, 2); if (!thr.proj && cm && cm.phases.some(function (q) { return q.counter; }) && this.rnd() < .5 + L.combo * .3) { this.step(['s2'], 1, true); this.cool = 30; return out; }
+        if (thr.proj && dist > 190 && this.rnd() < L.jump * 1.4) { this.step(['u', tow], 6, false); this.step([tow, 'k'], 1, true); this.cool = 8; return out; }
+        if (this.rnd() < L.block * (me.gg > 75 ? .55 : me.gg > 50 ? .8 : 1)) { var cr = thr.lvl === 'l'; if (thr.proj && thr.eta > 16) this.step([], thr.eta - 12, false); this.step(cr ? [away, 'd'] : [away], thr.hold, false); return out; }
         else if (thr.proj && this.rnd() < L.jump * 2) { this.step(['u', tow], 8, false); return out; }
       }
     } else this.react = -1;
@@ -43,12 +51,12 @@
     var ch = me.ch, rng = ch.stats.rng, ranged = rng >= 4, meter = me.meter, W = me.sc, r = this.rnd();
     if (meter >= 100 && this.rnd() < L.ult && (dist < 230 || ranged) && opp.state !== 'launched') { this.step(['s3'], 1, true); this.cool = 40; return out; }
     if (dist > 360) {
-      if (ranged && r < .6 * L.aggr + .2) { this.step([this.rnd() < .5 ? 's1' : 's2'], 1, true); this.cool = 38 + (2 - L.rt / 11) * 4; }
+      if (ranged && r < .6 * L.aggr + .2) { this.step(this.spk(me, this.rnd() < .5 ? 1 : 2), 1, true); this.cool = 38 + (2 - L.rt / 11) * 4; }
       else if (r < L.jump) { this.step(['u', tow], 30, false); this.cool = 10; }
       else this.step([tow], 18 + (this.rnd() * 20 | 0), false);
     } else if (dist > 170) {
-      if (ranged) { if (r < .55) { this.step([this.rnd() < .5 ? 's1' : 's2'], 1, true); this.cool = 30; } else this.step([away], 14, false); }
-      else if (r < .22 * L.aggr) { this.step(['s' + (1 + (this.rnd() * 2 | 0))], 1, true); this.cool = 40; }
+      if (ranged) { if (r < .55) { this.step(this.spk(me, this.rnd() < .5 ? 1 : 2), 1, true); this.cool = 30; } else this.step([away], 14, false); }
+      else if (r < .22 * L.aggr) { this.step(this.spk(me, 1 + (this.rnd() * 2 | 0)), 1, true); this.cool = 40; }
       else if (r < L.jump + .1) { this.step(['u', tow], 4, false); this.step([], 14, false); this.step(['k'], 1, true); this.cool = 30; }
       else if (r < .6) this.step([tow], 12, false);
       else { this.step([], 10 + (this.rnd() * 15 | 0), false); }
@@ -60,8 +68,10 @@
   AP.closeCombo = function (me, opp, dist, tow, away, L, r) {
     var chain = this.rnd() < L.combo;
     if (opp.state === 'down' || opp.state === 'getup') { this.step([tow], 10, false); this.step(['d'], 1, false); this.step(['d', 'k'], 1, true); this.cool = 25; return; }
+    if (opp.crushed && opp.state === 'hurt') { this.step([tow], 4, false); this.step(['p'], 1, true); this.step([], 7, false); this.step(this.spk(me, this.rnd() < .5 ? 1 : 2), 1, true); this.cool = 40; return; }
+    if (opp.blocking && opp.gg > 45 && r < .5) { this.step([tow, 'p'], 1, true); this.step([], 14, false); this.step([tow, 'k'], 1, true); this.cool = 36; return; }
     if (opp.blocking && r < .3) { this.step(['p', 'k'], 1, true); this.cool = 40; return; }                                        // 投技破防
-    if (r < .24) { this.step(['p'], 1, true); if (chain) { this.step([], 6, false); this.step(['p'], 1, true); this.step([], 7, false); this.step([this.rnd() < .5 ? 's1' : 's2'], 1, true); } this.cool = 18; }
+    if (r < .24) { this.step(['p'], 1, true); if (chain) { this.step([], 6, false); this.step(['p'], 1, true); this.step([], 7, false); this.step(this.spk(me, this.rnd() < .5 ? 1 : 2), 1, true); } this.cool = 18; }
     else if (r < .44) { this.step(['k'], 1, true); if (chain) { this.step([], 8, false); this.step([tow, 'p'], 1, true); } this.cool = 22; }
     else if (r < .58) { this.step([tow, 'p'], 1, true); this.cool = 34; }
     else if (r < .7) { this.step(['d', 'k'], 1, true); this.cool = 34; }
@@ -74,10 +84,10 @@
   AP.threat = function (me, opp, scene, dist) {
     if (opp.state === 'attack' && opp.move) {
       var ph = opp.phase(), i, reach = 0, lvl = 'm', rem = 0, phs = opp.move.phases;
-      for (i = opp.mi; i < phs.length; i++) { if (phs[i].hit) { var b = phs[i].hit.box; reach = Math.max(reach, b[1] * opp.sc); lvl = phs[i].hit.lvl || 'm'; break; } if (phs[i].spawn) return null; rem += phs[i].n; }
+      for (i = opp.mi; i < phs.length; i++) { if (phs[i].hit) { var b = phs[i].hit.box; reach = Math.max(reach, b[1] * opp.sc); lvl = phs[i].hit.lvl || 'm'; break; } if (phs[i].spawn) break; rem += phs[i].n; }
       if (reach && dist < reach + 70 && me.y <= 0) return { hold: 14 + rem, lvl: lvl };
     }
-    var ps = scene.projs, j; for (j = 0; j < ps.length; j++) { var p = ps[j]; if (p.owner !== me && !p.dead && (p.x - me.x) * p.vx < 0 && Math.abs(p.x - me.x) < 260) return { hold: 16, lvl: p.sp.lvl || 'm', proj: true }; }
+    var ps = scene.projs, j; for (j = 0; j < ps.length; j++) { var p = ps[j]; if (p.owner !== me && !p.dead && (p.x - me.x) * p.vx < 0 && Math.abs(p.x - me.x) < 260) return { hold: 14, lvl: p.sp.lvl || 'm', proj: true, eta: Math.ceil(Math.abs(p.x - me.x) / Math.max(1, Math.abs(p.vx))) }; }
     return null;
   };
 

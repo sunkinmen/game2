@@ -1,5 +1,5 @@
 /* Service Worker — 離線快取（快取優先；背景更新）。改動檔案後請調高 CACHE 版本號。 */
-const CACHE = 'tfight-v4';
+const CACHE = 'tfight-v5';
 const FILES = [
   "./",
   "./index.html",

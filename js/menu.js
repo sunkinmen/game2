@@ -46,13 +46,13 @@
   var S = SettingsScene.prototype;
   S.enter = function () {
     var me = this, g = this.game; this.t = 0; this.stage = bgStage(2); FTouch.show(null);
-    this.list = UI.list(UI.settingsItems().concat([{ label: '恢復預設值', onOk: function () { FSettings.reset(); } }, { label: '返回', onOk: function () { g.toTitle(); } }]), 200, 92, 560, 30, { size: 18 });
+    this.list = UI.list(UI.settingsItems().concat([{ label: '恢復預設值', onOk: function () { FSettings.reset(); } }, { label: '返回', onOk: function () { g.toTitle(); } }]), 200, 74, 560, 25, { size: 16 });
     this._off = FI.on('nav', function (d) { if (d === 'back') g.toTitle(); else UI.nav(me.list, d); });
   };
   S.exit = function () { if (this._off) this._off(); };
   S.update = function () { this.t++; };
-  S.pointer = function (type, x, y) { UI.pointer(this.list, type, x, y); };
-  S.draw = function (c) { this.stage.draw(c, 200, this.t / 60); c.fillStyle = 'rgba(4,4,16,.6)'; c.fillRect(0, 0, W, H); UI.panel(c, 180, 30, 600, 480, { title: '設定' }); UI.drawList(c, this.list, this.t / 60); };
+  S.pointer = function (type, x, y) { if (type === 'down' && x < 170 && y < 60) { this.game.toTitle(); return; } UI.pointer(this.list, type, x, y); };
+  S.draw = function (c) { this.stage.draw(c, 200, this.t / 60); c.fillStyle = 'rgba(4,4,16,.6)'; c.fillRect(0, 0, W, H); UI.panel(c, 180, 30, 600, 480, { title: '設定' }); UI.drawList(c, this.list, this.t / 60); UI.pill(c, 16, 14, 130, 38, 'rgba(232,184,74,.9)', '#fff'); UI.text(c, '◀ 返回', 81, 33, 20, '#1a1408', 'center', { weight: 900 }); };
 
   /* ---------- 招式表 ---------- */
   function MoveBookScene(game) { this.game = game; }
